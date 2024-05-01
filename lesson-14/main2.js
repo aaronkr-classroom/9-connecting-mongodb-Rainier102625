@@ -6,7 +6,7 @@ const port = 3000,
   layouts = require("express-ejs-layouts"),
   homeController = require("./controllers/homeController"),
   errorController = require("./controllers/errorController"),
-  // @TODO: Subscriber 모델 가져오기
+  Subscriber = require("./models/subscriber"),
   app = express();
 
 /**
@@ -14,27 +14,86 @@ const port = 3000,
  * Mongoose를 사용한 MongoDB 연결
  */
 
+const mongoose = require("mongoose"),
+  dbURL = "mongodb+srv://eodnjs9906:0cWiPlpoo7TceYzf@ut-node.rkbl8lc.mongodb.net/?retryWrites=true&w=majority&appName=UT-node",
+  dbName = "ut-node";
+
+mongoose.connect(
+  dbURL + "/" + dbName, //
+  { useNewUrlParser: true}
+);
+
+const db = mongoose.connection;
 
 /**
  * @TODO: Listing 14.2 (p. 206)
  * 데이터베이스 연결 이벤트 처리
  */
 
+db.once("open",() => {
+  console.log("DB connected!!");
+})
 
 /**
  * Listing 14.4 (p. 207)
  * 생성과 저장 구문
  */
+//var 안전x = 밑에서 다시 생성할 수 있음
 
+let sub1 = new Subscriber({
+  name: "Arron",
+  email: " arronkr.trainier@gmail.com",
+  phone: 123456789,
+  newsletter: true
+});
+
+//ver1
+
+sub1.save()
+  .then(savedDoc =>{
+    console.log(savedDoc);
+  })
+  .catch(error => {
+    console.log(error);
+  });
+
+//ver2
+Subscriber.create({
+  name: "Tome hiddleston",
+  email: "loki@mv.com",
+  phone: 6666666,
+  newsletter: false
+})
+.then(savedDoc =>{
+  console.log(savedDoc);
+})
+.catch(error => {
+  console.log(error);
+});
 
 // (선택) DB find() after 14.5
 
+let tom = Subscriber
+            .findOne({name: "Tom Hiddleston"})
+            .where(
+              "email",
+              /loki/
+            );
+console.log("Found: ", tom);
 
 /**
  * @TODO: Listing 14.6 (p. 208)
  * 데이터베이스에서 데이터 검색
  */
 
+var query = Subscriber.findOne({
+  name: "Aaron",
+}).where("email", /aaron/);
+
+query.exec()
+    .then((error, data) =>{
+      if(data) console.log(data.name);
+    })
 
 app.set("port", process.env.PORT || port);
 app.set("view engine", "ejs");
